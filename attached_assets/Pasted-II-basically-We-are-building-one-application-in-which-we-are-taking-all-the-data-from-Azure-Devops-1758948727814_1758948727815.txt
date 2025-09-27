@@ -1,0 +1,23 @@
+II, basically. We are building one application in which we are taking all the data from Azure Devops and by a proper analytics we will show in the R board. .l The one feature which it really misses, I want it. Are the feature like the code commit? How many persons are committing the code? I need to know that. By the repository you can get to know like which can be the recent. Commit in the application. This is the main functionality I need to know like how the things will be happen. See that I will share you the PAT token. And all the things related to you go to the Azure Devops. Documentation and see all those things you can fetch from there and display there. We will we need to fetch all the things and show here. This is the preview or the prototype of the application which which don't have any proper functionalities so we need to make the all those functionality real. I will share all the pad token project URL project name all the things you need.
+
+curl -u :3JxOXxPFX7yyZMhKfR53u4L4FT6aTaor5d045FRbM1q2gNOEtZw7JQQJ99BIACAAAAALAs7DAAASAZDO1OXD ^
+
+-X POST "https://dev.azure.com/podtech-io/LifeSafety.ai/_apis/wit/wiql?api-version=7.0" ^
+
+-H "Content-Type: application/json" ^
+
+-d "{"query":"SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], [System.WorkItemType] FROM WorkItemLinks WHERE ([Source].[System.TeamProject] = 'LifeSafety.ai' AND [Source].[System.IterationPath] UNDER 'LifeSafety.ai\Sprint 61' AND [Source].[System.WorkItemType] = 'User Story') AND ([System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward') AND ([Target].[System.TeamProject] = 'LifeSafety.ai') MODE (Recursive)"}" ^
+
+-o sprint61_hierarchy.json
+
+curl -u :3JxOXxPFX7yyZMhKfR53u4L4FT6aTaor5d045FRbM1q2gNOEtZw7JQQJ99BIACAAAAALAs7DAAASAZDO1OXD ^
+
+"https://dev.azure.com/podtech-io/LifeSafety.ai/_apis/wit/workitems?ids=21853,21947,22269,22270,2239… ^
+
+-o sprint61_tasks_details.json
+
+
+
+pending Add code history and contributor stats
+Add project details and history
+Test app with real project info

@@ -217,13 +217,15 @@ export class DbStorage implements IStorage {
 
   // Work Item methods
   async getWorkItems(projectName: string, iterationPath?: string): Promise<WorkItem[]> {
-    let query = db.select().from(workItems).where(eq(workItems.projectName, projectName));
-    
     if (iterationPath) {
-      query = query.where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)));
+      return await db.select().from(workItems)
+        .where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)))
+        .orderBy(desc(workItems.createdDate));
     }
     
-    return await query.orderBy(desc(workItems.createdDate));
+    return await db.select().from(workItems)
+      .where(eq(workItems.projectName, projectName))
+      .orderBy(desc(workItems.createdDate));
   }
 
   async upsertWorkItems(workItemsData: InsertWorkItem[]): Promise<WorkItem[]> {
@@ -260,14 +262,12 @@ export class DbStorage implements IStorage {
     workItemsByType: Array<{ type: string; count: number }>;
     workItemsByState: Array<{ state: string; count: number }>;
   }> {
-    let baseQuery = db.select().from(workItems).where(eq(workItems.projectName, projectName));
-    
-    if (iterationPath) {
-      baseQuery = baseQuery.where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)));
-    }
-
     // Get all work items for analysis
-    const allWorkItems = await baseQuery;
+    const allWorkItems = iterationPath
+      ? await db.select().from(workItems)
+          .where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)))
+      : await db.select().from(workItems)
+          .where(eq(workItems.projectName, projectName));
     
     // Calculate stats
     const totalWorkItems = allWorkItems.length;
@@ -308,13 +308,15 @@ export class DbStorage implements IStorage {
 
   // Pull Request methods
   async getPullRequests(repositoryId: string, status?: string): Promise<PullRequest[]> {
-    let query = db.select().from(pullRequests).where(eq(pullRequests.repositoryId, repositoryId));
-    
     if (status && status !== 'all') {
-      query = query.where(and(eq(pullRequests.repositoryId, repositoryId), eq(pullRequests.status, status)));
+      return await db.select().from(pullRequests)
+        .where(and(eq(pullRequests.repositoryId, repositoryId), eq(pullRequests.status, status)))
+        .orderBy(desc(pullRequests.creationDate));
     }
     
-    return await query.orderBy(desc(pullRequests.creationDate));
+    return await db.select().from(pullRequests)
+      .where(eq(pullRequests.repositoryId, repositoryId))
+      .orderBy(desc(pullRequests.creationDate));
   }
 
   async upsertPullRequests(pullRequestsData: InsertPullRequest[]): Promise<PullRequest[]> {
@@ -328,7 +330,12 @@ export class DbStorage implements IStorage {
           .set({ ...prData, lastUpdated: new Date() })
           .where(eq(pullRequests.id, prData.id));
       } else {
-        await db.insert(pullRequests).values({ ...prData, lastUpdated: new Date() });
+        await db.insert(pullRequests).values({ 
+          ...prData, 
+          lastUpdated: new Date(),
+          reviewers: prData.reviewers || null,
+          workItemIds: prData.workItemIds || null
+        });
       }
       
       const result = await db.select().from(pullRequests).where(eq(pullRequests.id, prData.id)).limit(1);
@@ -747,4 +754,4 @@ export class MemStorage implements IStorage {
 }
 
 // Use database storage for permanent data as recommended
-export const storage = new DbStorage();
+export const storage = new MemStorage();

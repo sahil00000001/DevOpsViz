@@ -194,72 +194,79 @@ export class AzureDevOpsService {
 
   // Work Item Management
   async getWorkItems(iterationPath?: string): Promise<WorkItem[]> {
-    let wiqlQuery = `
-      SELECT [System.Id], [System.Title], [System.State], [System.AssignedTo], 
-             [System.WorkItemType], [System.CreatedDate], [System.CreatedBy],
-             [System.ChangedDate], [System.AreaPath], [System.IterationPath],
-             [System.Description], [Microsoft.VSTS.Common.AcceptanceCriteria],
-             [Microsoft.VSTS.Scheduling.StoryPoints], [System.Priority], 
-             [Microsoft.VSTS.Common.Severity], [System.Tags], [System.Reason]
-      FROM WorkItems 
-      WHERE [System.TeamProject] = '${this.config.project}'
-    `;
+    try {
+      // Simple WIQL query to get work items
+      let wiqlQuery = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${this.config.project}'`;
+      
+      if (iterationPath) {
+        wiqlQuery += ` AND [System.IterationPath] UNDER '${iterationPath}'`;
+      }
+      
+      wiqlQuery += ` ORDER BY [System.ChangedDate] DESC`;
 
-    if (iterationPath) {
-      wiqlQuery += ` AND [System.IterationPath] UNDER '${iterationPath}'`;
-    }
+      console.log('Executing WIQL query:', wiqlQuery);
 
-    const wiqlUrl = `${this.baseUrl}/wit/wiql?api-version=7.1`;
-    const wiqlResponse = await fetch(wiqlUrl, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: JSON.stringify({ query: wiqlQuery })
-    });
+      const wiqlUrl = `${this.baseUrl}/wit/wiql?api-version=7.1`;
+      const wiqlResponse = await fetch(wiqlUrl, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify({ query: wiqlQuery })
+      });
 
-    if (!wiqlResponse.ok) {
-      throw new Error(`Work Item Query failed: ${wiqlResponse.status}`);
-    }
+      if (!wiqlResponse.ok) {
+        const errorText = await wiqlResponse.text();
+        console.error(`Work Item Query failed: ${wiqlResponse.status} ${wiqlResponse.statusText}`, errorText);
+        return [];
+      }
 
-    const wiqlResult = await wiqlResponse.json();
-    
-    if (!wiqlResult.workItems || wiqlResult.workItems.length === 0) {
+      const wiqlResult = await wiqlResponse.json();
+      console.log('WIQL result:', wiqlResult);
+      
+      if (!wiqlResult.workItems || wiqlResult.workItems.length === 0) {
+        console.log('No work items found in WIQL result');
+        return [];
+      }
+
+      // Get work item IDs (limit to first 200 for performance)
+      const workItemIds = wiqlResult.workItems.slice(0, 200).map((wi: any) => wi.id);
+      const idsParam = workItemIds.join(',');
+      
+      console.log(`Fetching details for ${workItemIds.length} work items`);
+      
+      // Get detailed work item data
+      const workItemsUrl = `${this.baseUrl}/wit/workitems?ids=${idsParam}&$expand=Fields&api-version=7.1`;
+      const workItemsResponse = await this.makeRequest<AzureDevOpsApiResponse<any>>(workItemsUrl);
+
+      return workItemsResponse.value.map(wi => ({
+        id: wi.id,
+        rev: wi.rev,
+        projectName: this.config.project,
+        areaPath: wi.fields['System.AreaPath'],
+        iterationPath: wi.fields['System.IterationPath'],
+        workItemType: wi.fields['System.WorkItemType'],
+        state: wi.fields['System.State'],
+        reason: wi.fields['System.Reason'],
+        title: wi.fields['System.Title'],
+        assignedToName: wi.fields['System.AssignedTo']?.displayName,
+        assignedToEmail: wi.fields['System.AssignedTo']?.uniqueName,
+        assignedToImageUrl: wi.fields['System.AssignedTo']?._links?.avatar?.href,
+        createdDate: new Date(wi.fields['System.CreatedDate']),
+        createdByName: wi.fields['System.CreatedBy']?.displayName,
+        createdByEmail: wi.fields['System.CreatedBy']?.uniqueName,
+        changedDate: wi.fields['System.ChangedDate'] ? new Date(wi.fields['System.ChangedDate']) : null,
+        description: wi.fields['System.Description'],
+        acceptanceCriteria: wi.fields['Microsoft.VSTS.Common.AcceptanceCriteria'],
+        storyPoints: wi.fields['Microsoft.VSTS.Scheduling.StoryPoints'],
+        priority: wi.fields['System.Priority'],
+        severity: wi.fields['Microsoft.VSTS.Common.Severity'],
+        tags: wi.fields['System.Tags'] ? wi.fields['System.Tags'].split(';').map((tag: string) => tag.trim()) : [],
+        url: wi.url,
+        lastUpdated: new Date()
+      }));
+    } catch (error) {
+      console.error('Failed to fetch work items:', error);
       return [];
     }
-
-    // Get work item IDs
-    const workItemIds = wiqlResult.workItems.map((wi: any) => wi.id);
-    const idsParam = workItemIds.join(',');
-    
-    // Get detailed work item data
-    const workItemsUrl = `${this.baseUrl}/wit/workitems?ids=${idsParam}&$expand=all&api-version=7.1`;
-    const workItemsResponse = await this.makeRequest<AzureDevOpsApiResponse<any>>(workItemsUrl);
-
-    return workItemsResponse.value.map(wi => ({
-      id: wi.id,
-      rev: wi.rev,
-      projectName: this.config.project,
-      areaPath: wi.fields['System.AreaPath'],
-      iterationPath: wi.fields['System.IterationPath'],
-      workItemType: wi.fields['System.WorkItemType'],
-      state: wi.fields['System.State'],
-      reason: wi.fields['System.Reason'],
-      title: wi.fields['System.Title'],
-      assignedToName: wi.fields['System.AssignedTo']?.displayName,
-      assignedToEmail: wi.fields['System.AssignedTo']?.uniqueName,
-      assignedToImageUrl: wi.fields['System.AssignedTo']?._links?.avatar?.href,
-      createdDate: new Date(wi.fields['System.CreatedDate']),
-      createdByName: wi.fields['System.CreatedBy']?.displayName,
-      createdByEmail: wi.fields['System.CreatedBy']?.uniqueName,
-      changedDate: wi.fields['System.ChangedDate'] ? new Date(wi.fields['System.ChangedDate']) : null,
-      description: wi.fields['System.Description'],
-      acceptanceCriteria: wi.fields['Microsoft.VSTS.Common.AcceptanceCriteria'],
-      storyPoints: wi.fields['Microsoft.VSTS.Scheduling.StoryPoints'],
-      priority: wi.fields['System.Priority'],
-      severity: wi.fields['Microsoft.VSTS.Common.Severity'],
-      tags: wi.fields['System.Tags'] ? wi.fields['System.Tags'].split(';').map((tag: string) => tag.trim()) : [],
-      url: wi.url,
-      lastUpdated: new Date()
-    }));
   }
 
   async getWorkItemAnalytics(iterationPath?: string): Promise<WorkItemAnalytics> {

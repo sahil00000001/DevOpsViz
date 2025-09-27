@@ -35,11 +35,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const pat = process.env.AZURE_DEVOPS_PAT_TOKEN;
 
   if (!pat) {
-    console.error("AZURE_DEVOPS_PAT_TOKEN environment variable is required");
-    throw new Error("Azure DevOps PAT token not configured");
+    console.warn("AZURE_DEVOPS_PAT_TOKEN environment variable is not set. Azure DevOps sync will be disabled.");
   }
 
-  const azureDevOpsService = createAzureDevOpsService(organization, project, pat);
+  const azureDevOpsService = pat ? createAzureDevOpsService(organization, project, pat) : null;
 
   // Utility function to check cache freshness (5 minutes)
   const isCacheStale = async (entity: string, org: string, proj: string): Promise<boolean> => {
@@ -66,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ]);
 
       // If no data in cache, trigger sync
-      if (repositories.length === 0) {
+      if (repositories.length === 0 && azureDevOpsService) {
         try {
           const freshRepos = await azureDevOpsService.getRepositories();
           await storage.upsertRepository(freshRepos[0]);
@@ -145,7 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get analytics from both service and storage
       const [commitStats, commitAnalytics] = await Promise.all([
         storage.getCommitStats(repositoryId, days),
-        azureDevOpsService.getCommitAnalytics(repositoryId, days).catch(() => null)
+        azureDevOpsService ? azureDevOpsService.getCommitAnalytics(repositoryId, days).catch(() => null) : Promise.resolve(null)
       ]);
 
       // Combine data from both sources
@@ -267,6 +266,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { repositoryId } = repositoryParamsSchema.parse(req.params);
       
+      if (!azureDevOpsService) {
+        return res.status(503).json({ error: "Azure DevOps service not configured" });
+      }
+      
       const insights = await azureDevOpsService.getRepositoryInsights(repositoryId);
       res.json(insights);
     } catch (error) {
@@ -283,6 +286,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         project: req.body.project || project,
         force: req.body.force
       });
+
+      if (!azureDevOpsService) {
+        return res.status(503).json({ error: "Azure DevOps service not configured. Please set AZURE_DEVOPS_PAT_TOKEN environment variable." });
+      }
 
       // Check if sync is needed (unless forced)
       if (!query.force) {
