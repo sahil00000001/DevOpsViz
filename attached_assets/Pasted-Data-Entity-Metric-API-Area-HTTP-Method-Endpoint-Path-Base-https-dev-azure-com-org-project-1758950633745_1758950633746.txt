@@ -1,0 +1,86 @@
+Data Entity/Metric
+
+API Area
+
+HTTP Method
+
+Endpoint Path (Base: https://dev.azure.com/{org}/{project}/_apis/...)
+
+Key Notes / How to Filter
+
+Work Item / User Story
+
+Work Item Tracking (WIT)
+
+GET
+
+wit/workitems/{id}?api-version=7.1
+
+Fetch specific work item details by ID. You can also use $expand=fields and specify required fields.
+
+Work Items Completed
+
+Work Item Tracking (WIT)
+
+POST
+
+wit/wiql?api-version=7.1
+
+Use a WIQL Query in the request body (e.g., SELECT [System.ID] FROM WorkItems WHERE [System.State] = 'Done' AND [System.CompletedDate] > 'YYYY-MM-DD').
+
+Dependencies & Blockers
+
+Work Item Tracking (WIT)
+
+GET
+
+wit/workitems/{id}?$expand=relations&api-version=7.1
+
+The $expand=relations parameter is crucial. Look for relation types like System.LinkTypes.Dependency-Forward or System.LinkTypes.Related.
+
+Hours Burned & Remaining Work
+
+Work Item Tracking (WIT)
+
+GET
+
+wit/workitems/{id}?fields=System.ID,Microsoft.VSTS.Scheduling.CompletedWork,Microsoft.VSTS.Scheduling.RemainingWork&api-version=7.1
+
+Request the specific fields in the query. These fields are typically populated on Task work items.
+
+Active Pull Requests
+
+Git
+
+GET
+
+git/repositories/{repoId}/pullrequests?searchCriteria.status=active&api-version=7.1
+
+The searchCriteria.status=active query parameter filters the list to only include currently open PRs.
+
+Code Commits
+
+Git
+
+GET
+
+git/repositories/{repoId}/commits?api-version=7.1
+
+You can filter by searchCriteria.author, searchCriteria.fromDate, or searchCriteria.itemPath for more granular data.
+
+Team Performance (Velocity, Burn Down)
+
+Analytics (OData)
+
+GET
+
+analytics/v2.0/{project}/_odata/v3.0/MetricsSnapshots?api-version=7.1-preview.1
+
+Metrics like velocity are complex and aggregated. It is highly recommended to use the OData endpoint and construct a specific query to get aggregated historical data. The structure often involves $filter on DateSK, IterationSK, and TeamSK.
+
+Key Concepts for Working with ADO APIs
+WIQL (Work Item Query Language): For complex queries (e.g., "all bugs closed in the last sprint"), use the wit/wiql endpoint with a POST request body containing the query.
+
+Authentication: All ADO REST API calls require Personal Access Tokens (PATs) or OAuth. Ensure your PAT has the correct scopes (e.g., vso.work for work items, vso.code for Git).
+
+Required IDs: You must provide the Organization name, Project ID/Name, and often a specific Work Item ID ({id}), Repository ID ({repoId}), or Team ID.

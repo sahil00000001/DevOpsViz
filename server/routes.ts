@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { createAzureDevOpsService } from "./azure-devops-service";
+import { createAzureDevOpsService, generateDemoData } from "./azure-devops-service";
 import { z } from "zod";
 
 // Validation schemas
@@ -288,7 +288,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!azureDevOpsService) {
-        return res.status(503).json({ error: "Azure DevOps service not configured. Please set AZURE_DEVOPS_PAT_TOKEN environment variable." });
+        // Generate and populate demo data when PAT token is not available
+        console.log(`No PAT token available, populating demo data for ${query.organization}/${query.project}...`);
+        
+        const demoData = generateDemoData(query.organization, query.project);
+        
+        // Clear existing data first
+        await storage.clearCache(query.organization, query.project);
+        
+        // Insert demo data
+        await storage.upsertRepository(demoData.repositories[0]);
+        await storage.upsertRepository(demoData.repositories[1]);
+        await storage.upsertWorkItems(demoData.workItems);
+        await storage.upsertCommits(demoData.commits);
+        await storage.upsertPullRequests(demoData.pullRequests);
+        await storage.upsertTeamMembers(demoData.teamMembers);
+        await storage.upsertSprints(demoData.sprints);
+        
+        // Update cache timestamps
+        await storage.updateCacheTimestamp('repositories', query.organization, query.project);
+        await storage.updateCacheTimestamp('workItems', query.organization, query.project);
+        await storage.updateCacheTimestamp('commits', query.organization, query.project);
+        await storage.updateCacheTimestamp('pullRequests', query.organization, query.project);
+        await storage.updateCacheTimestamp('teamMembers', query.organization, query.project);
+        await storage.updateCacheTimestamp('sprints', query.organization, query.project);
+        
+        const syncResult = {
+          success: true,
+          message: "Demo data populated successfully (Azure DevOps PAT token not configured)",
+          syncedAt: new Date().toISOString(),
+          counts: {
+            repositories: demoData.repositories.length,
+            sprints: demoData.sprints.length,
+            workItems: demoData.workItems.length,
+            teamMembers: demoData.teamMembers.length,
+            commits: demoData.commits.length,
+            pullRequests: demoData.pullRequests.length
+          }
+        };
+        
+        console.log("Demo data sync completed:", syncResult);
+        return res.json(syncResult);
       }
 
       // Check if sync is needed (unless forced)
@@ -327,7 +367,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       syncPromises.push(
         azureDevOpsService.getSprints()
           .then(async (sprints) => {
-            await storage.upsertSprints(sprints);
+            await storage.upsertSprints(sprints.map(s => ({ 
+              ...s, 
+              attributes: s.attributes as any 
+            })));
             await storage.updateCacheTimestamp('sprints', query.organization, query.project);
             return sprints.length;
           })

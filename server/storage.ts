@@ -333,7 +333,7 @@ export class DbStorage implements IStorage {
         await db.insert(pullRequests).values({ 
           ...prData, 
           lastUpdated: new Date(),
-          reviewers: prData.reviewers || null,
+          reviewers: prData.reviewers as any || null,
           workItemIds: prData.workItemIds || null
         });
       }
@@ -504,7 +504,15 @@ export class MemStorage implements IStorage {
   }
 
   async upsertRepository(repository: InsertRepository): Promise<Repository> {
-    const repo: Repository = { ...repository, lastUpdated: new Date() };
+    const repo: Repository = { 
+      ...repository, 
+      lastUpdated: new Date(),
+      defaultBranch: repository.defaultBranch ?? null,
+      size: repository.size ?? null,
+      url: repository.url ?? null,
+      webUrl: repository.webUrl ?? null,
+      createdDate: repository.createdDate ?? null
+    };
     this.repositories.set(repository.id, repo);
     return repo;
   }
@@ -523,7 +531,13 @@ export class MemStorage implements IStorage {
   async upsertCommits(commitsData: InsertCommit[]): Promise<Commit[]> {
     const results: Commit[] = [];
     for (const commitData of commitsData) {
-      const commit: Commit = { ...commitData, lastUpdated: new Date() };
+      const commit: Commit = { 
+        ...commitData, 
+        lastUpdated: new Date(),
+        url: commitData.url ?? null,
+        remoteUrl: commitData.remoteUrl ?? null,
+        commentTruncated: commitData.commentTruncated ?? null
+      };
       this.commits.set(commitData.id, commit);
       results.push(commit);
     }
@@ -590,7 +604,27 @@ export class MemStorage implements IStorage {
   async upsertWorkItems(workItemsData: InsertWorkItem[]): Promise<WorkItem[]> {
     const results: WorkItem[] = [];
     for (const wiData of workItemsData) {
-      const wi: WorkItem = { ...wiData, lastUpdated: new Date() };
+      const wi: WorkItem = { 
+        ...wiData, 
+        lastUpdated: new Date(),
+        url: wiData.url ?? null,
+        rev: wiData.rev ?? null,
+        areaPath: wiData.areaPath ?? null,
+        iterationPath: wiData.iterationPath ?? null,
+        reason: wiData.reason ?? null,
+        assignedToName: wiData.assignedToName ?? null,
+        assignedToEmail: wiData.assignedToEmail ?? null,
+        assignedToImageUrl: wiData.assignedToImageUrl ?? null,
+        createdByName: wiData.createdByName ?? null,
+        createdByEmail: wiData.createdByEmail ?? null,
+        changedDate: wiData.changedDate ?? null,
+        description: wiData.description ?? null,
+        acceptanceCriteria: wiData.acceptanceCriteria ?? null,
+        storyPoints: wiData.storyPoints ?? null,
+        priority: wiData.priority ?? null,
+        severity: wiData.severity ?? null,
+        tags: wiData.tags ?? null
+      };
       this.workItems.set(wiData.id, wi);
       results.push(wi);
     }

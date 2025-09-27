@@ -454,6 +454,255 @@ export class AzureDevOpsService {
   }
 }
 
+// Demo data generator for when PAT token is not available
+export function generateDemoData(organization: string, project: string) {
+  const repositories = [
+    {
+      id: "demo-repo-1",
+      name: "LifeSafety.ai-Frontend",
+      projectId: "demo-project-1",
+      projectName: project,
+      organization,
+      defaultBranch: "refs/heads/main",
+      size: 15728640,
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Frontend",
+      webUrl: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Frontend",
+      createdDate: new Date("2024-01-15T10:00:00Z"),
+      lastUpdated: new Date()
+    },
+    {
+      id: "demo-repo-2", 
+      name: "LifeSafety.ai-Backend",
+      projectId: "demo-project-1",
+      projectName: project,
+      organization,
+      defaultBranch: "refs/heads/main",
+      size: 8945123,
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Backend",
+      webUrl: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Backend",
+      createdDate: new Date("2024-01-10T08:30:00Z"),
+      lastUpdated: new Date()
+    }
+  ];
+
+  const workItems = [
+    {
+      id: 1001,
+      rev: 12,
+      projectName: project,
+      areaPath: `${project}\\AI Models`,
+      iterationPath: `${project}\\Sprint 68`,
+      workItemType: "User Story",
+      state: "Active",
+      reason: "Implementation started",
+      title: "Implement real-time hazard detection using computer vision",
+      assignedToName: "Sarah Johnson",
+      assignedToEmail: "sarah.johnson@podtech.io",
+      assignedToImageUrl: null,
+      createdDate: new Date("2024-09-30T09:15:00Z"),
+      createdByName: "Mike Chen",
+      createdByEmail: "mike.chen@podtech.io", 
+      changedDate: new Date("2024-10-08T14:30:00Z"),
+      description: "Develop computer vision models to detect potential safety hazards in real-time from camera feeds",
+      acceptanceCriteria: "1. Model accuracy > 95%\n2. Real-time processing < 100ms\n3. Integration with alert system",
+      storyPoints: 13,
+      priority: 1,
+      severity: "High",
+      tags: ["AI", "Computer Vision", "Safety"],
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_workitems/edit/1001",
+      lastUpdated: new Date()
+    },
+    {
+      id: 1002,
+      rev: 8,
+      projectName: project,
+      areaPath: `${project}\\Dashboard`,
+      iterationPath: `${project}\\Sprint 68`,
+      workItemType: "Task",
+      state: "Done",
+      reason: "Completed",
+      title: "Create Azure DevOps metrics dashboard",
+      assignedToName: "Alex Rodriguez",
+      assignedToEmail: "alex.rodriguez@podtech.io",
+      assignedToImageUrl: null,
+      createdDate: new Date("2024-09-28T11:00:00Z"),
+      createdByName: "Emily Davis",
+      createdByEmail: "emily.davis@podtech.io",
+      changedDate: new Date("2024-10-09T16:45:00Z"),
+      description: "Build a comprehensive dashboard showing project metrics and team performance",
+      acceptanceCriteria: "1. Display work items, commits, PRs\n2. Real-time data sync\n3. Responsive design",
+      storyPoints: 8,
+      priority: 2,
+      severity: "Medium",
+      tags: ["Dashboard", "Analytics", "UI"],
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_workitems/edit/1002",
+      lastUpdated: new Date()
+    },
+    {
+      id: 1003,
+      rev: 5,
+      projectName: project,
+      areaPath: `${project}\\Infrastructure`,
+      iterationPath: `${project}\\Sprint 68`,
+      workItemType: "Bug",
+      state: "New",
+      reason: "Reported by QA",
+      title: "Database connection timeouts in production",
+      assignedToName: "David Kim",
+      assignedToEmail: "david.kim@podtech.io",
+      assignedToImageUrl: null,
+      createdDate: new Date("2024-10-07T13:20:00Z"),
+      createdByName: "QA Team",
+      createdByEmail: "qa@podtech.io",
+      changedDate: new Date("2024-10-09T10:15:00Z"),
+      description: "Users experiencing intermittent database connection timeouts during peak hours",
+      acceptanceCriteria: "1. Identify root cause\n2. Implement fix\n3. Load test to verify",
+      storyPoints: 5,
+      priority: 1,
+      severity: "Critical",
+      tags: ["Database", "Performance", "Production"],
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_workitems/edit/1003",
+      lastUpdated: new Date()
+    }
+  ];
+
+  const commits = [
+    {
+      id: "demo-repo-1-abc123",
+      commitId: "abc123def456",
+      repositoryId: "demo-repo-1",
+      authorName: "Sarah Johnson",
+      authorEmail: "sarah.johnson@podtech.io",
+      authorDate: new Date("2024-10-09T15:30:00Z"),
+      committerName: "Sarah Johnson",
+      committerEmail: "sarah.johnson@podtech.io",
+      committerDate: new Date("2024-10-09T15:30:00Z"),
+      comment: "feat: implement hazard detection model training pipeline",
+      commentTruncated: false,
+      changeCounts: { Add: 15, Edit: 3, Delete: 1 },
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Frontend/commit/abc123def456",
+      remoteUrl: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Frontend",
+      lastUpdated: new Date()
+    },
+    {
+      id: "demo-repo-2-def789",
+      commitId: "def789ghi012",
+      repositoryId: "demo-repo-2",
+      authorName: "Alex Rodriguez",
+      authorEmail: "alex.rodriguez@podtech.io",
+      authorDate: new Date("2024-10-09T14:15:00Z"),
+      committerName: "Alex Rodriguez",
+      committerEmail: "alex.rodriguez@podtech.io",
+      committerDate: new Date("2024-10-09T14:15:00Z"),
+      comment: "fix: optimize database connection pooling",
+      commentTruncated: false,
+      changeCounts: { Add: 8, Edit: 12, Delete: 4 },
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Backend/commit/def789ghi012",
+      remoteUrl: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Backend",
+      lastUpdated: new Date()
+    }
+  ];
+
+  const pullRequests = [
+    {
+      id: 2001,
+      repositoryId: "demo-repo-1",
+      pullRequestId: 42,
+      codeReviewId: 1542,
+      status: "active",
+      title: "Add computer vision hazard detection models",
+      description: "This PR implements the core computer vision models for real-time hazard detection",
+      sourceRefName: "refs/heads/feature/hazard-detection",
+      targetRefName: "refs/heads/main",
+      mergeStatus: "succeeded",
+      isDraft: false,
+      createdByName: "Sarah Johnson",
+      createdByEmail: "sarah.johnson@podtech.io",
+      createdByImageUrl: null,
+      creationDate: new Date("2024-10-08T10:30:00Z"),
+      reviewers: [
+        {
+          displayName: "Mike Chen",
+          email: "mike.chen@podtech.io",
+          imageUrl: null,
+          vote: "approved" as const,
+          isRequired: true
+        },
+        {
+          displayName: "Emily Davis",
+          email: "emily.davis@podtech.io", 
+          imageUrl: null,
+          vote: "waiting" as const,
+          isRequired: false
+        }
+      ],
+      workItemIds: [1001],
+      url: "https://dev.azure.com/podtech-io/LifeSafety.ai/_git/LifeSafety.ai-Frontend/pullrequest/42",
+      lastUpdated: new Date()
+    }
+  ];
+
+  const teamMembers = [
+    {
+      id: "member-1",
+      displayName: "Sarah Johnson",
+      email: "sarah.johnson@podtech.io",
+      uniqueName: "sarah.johnson@podtech.io",
+      imageUrl: null,
+      projectName: project,
+      organization,
+      lastUpdated: new Date()
+    },
+    {
+      id: "member-2", 
+      displayName: "Alex Rodriguez",
+      email: "alex.rodriguez@podtech.io",
+      uniqueName: "alex.rodriguez@podtech.io",
+      imageUrl: null,
+      projectName: project,
+      organization,
+      lastUpdated: new Date()
+    },
+    {
+      id: "member-3",
+      displayName: "Mike Chen", 
+      email: "mike.chen@podtech.io",
+      uniqueName: "mike.chen@podtech.io",
+      imageUrl: null,
+      projectName: project,
+      organization,
+      lastUpdated: new Date()
+    }
+  ];
+
+  const sprints = [
+    {
+      id: "sprint-68",
+      name: "Sprint 68",
+      path: `${project}\\Sprint 68`,
+      projectName: project,
+      organization,
+      startDate: new Date("2024-09-30T00:00:00Z"),
+      finishDate: new Date("2024-10-13T23:59:59Z"),
+      state: "current",
+      attributes: {
+        startDate: "2024-09-30T00:00:00Z",
+        finishDate: "2024-10-13T23:59:59Z"
+      },
+      lastUpdated: new Date()
+    }
+  ];
+
+  return {
+    repositories,
+    workItems,
+    commits,
+    pullRequests,
+    teamMembers,
+    sprints
+  };
+}
+
 // Export factory function
 export function createAzureDevOpsService(organization: string, project: string, pat: string): AzureDevOpsService {
   return new AzureDevOpsService(organization, project, pat);
