@@ -32,13 +32,23 @@ const workItemsQuerySchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   const organization = "podtech-io";
   const project = "WLS";
-  const pat = process.env.AZURE_DEVOPS_PAT_TOKEN;
+  const envPat = process.env.AZURE_DEVOPS_PAT_TOKEN;
 
-  if (!pat) {
+  if (!envPat) {
     console.warn("AZURE_DEVOPS_PAT_TOKEN environment variable is not set. Azure DevOps sync will be disabled.");
   }
 
-  const azureDevOpsService = pat ? createAzureDevOpsService(organization, project, pat) : null;
+  // Helper function to get PAT token from request header or environment
+  const getPatToken = (req: any): string | null => {
+    const headerToken = req.headers['x-azure-devops-pat'];
+    return headerToken || envPat || null;
+  };
+
+  // Helper function to create service for a request
+  const getAzureDevOpsService = (req: any) => {
+    const pat = getPatToken(req);
+    return pat ? createAzureDevOpsService(organization, project, pat) : null;
+  };
 
   // Utility function to check cache freshness (5 minutes)
   const isCacheStale = async (entity: string, org: string, proj: string): Promise<boolean> => {
@@ -65,6 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ]);
 
       // If no data in cache, trigger sync
+      const azureDevOpsService = getAzureDevOpsService(req);
       if (repositories.length === 0 && azureDevOpsService) {
         try {
           const freshRepos = await azureDevOpsService.getRepositories();
@@ -142,6 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const days = req.query.days ? parseInt(req.query.days as string) : 30;
       
       // Get analytics from both service and storage
+      const azureDevOpsService = getAzureDevOpsService(req);
       const [commitStats, commitAnalytics] = await Promise.all([
         storage.getCommitStats(repositoryId, days),
         azureDevOpsService ? azureDevOpsService.getCommitAnalytics(repositoryId, days).catch(() => null) : Promise.resolve(null)
@@ -266,6 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { repositoryId } = repositoryParamsSchema.parse(req.params);
       
+      const azureDevOpsService = getAzureDevOpsService(req);
       if (!azureDevOpsService) {
         return res.status(503).json({ error: "Azure DevOps service not configured" });
       }
@@ -287,6 +300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         force: req.body.force
       });
 
+      const azureDevOpsService = getAzureDevOpsService(req);
       if (!azureDevOpsService) {
         // Generate and populate demo data when PAT token is not available
         console.log(`No PAT token available, populating demo data for ${query.organization}/${query.project}...`);

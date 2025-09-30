@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import DashboardHeader from "./DashboardHeader";
 import MetricsOverview from "./MetricsOverview";
 import WorkItemsTable from "./WorkItemsTable";
@@ -32,6 +33,33 @@ export default function Dashboard() {
     queryKey: ["/api/repositories"],
     enabled: true
   });
+
+  // Sync mutation to fetch data from Azure DevOps
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/sync", { force: true });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all queries to refetch with new data
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sprints"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/work-items"] });
+    }
+  });
+
+  // Check if PAT token exists
+  const [hasPatToken, setHasPatToken] = useState(false);
+  useEffect(() => {
+    const patToken = localStorage.getItem("azure_devops_pat_token");
+    setHasPatToken(!!patToken);
+    if (patToken) {
+      console.log("PAT token found in localStorage:", patToken.substring(0, 10) + "...");
+    } else {
+      console.log("No PAT token in localStorage");
+    }
+  }, []);
 
   // Transform sprints data from Azure DevOps API first
   const transformedSprints = sprints?.map((sprint: any) => ({
@@ -267,6 +295,10 @@ export default function Dashboard() {
     }
   };
 
+  const handleSync = () => {
+    syncMutation.mutate();
+  };
+
   // Show loading state while fetching data
   if (isLoading) {
     return (
@@ -288,6 +320,8 @@ export default function Dashboard() {
         selectedSprint={selectedSprint}
         onSprintChange={handleSprintChange}
         onRefresh={handleRefresh}
+        onSync={handleSync}
+        isSyncing={syncMutation.isPending}
       />
       
       <main className="container mx-auto p-6 space-y-6">

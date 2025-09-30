@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, RefreshCcw, Settings, ExternalLink } from "lucide-react";
+import { Calendar, RefreshCcw, Settings, ExternalLink, Download } from "lucide-react";
+import SettingsDialog from "./SettingsDialog";
 
 interface Sprint {
   id: string;
@@ -20,6 +21,8 @@ interface DashboardHeaderProps {
   selectedSprint?: string;
   onSprintChange: (sprintId: string) => void;
   onRefresh: () => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
 }
 
 export default function DashboardHeader({
@@ -28,9 +31,24 @@ export default function DashboardHeader({
   sprints,
   selectedSprint,
   onSprintChange,
-  onRefresh
+  onRefresh,
+  onSync,
+  isSyncing = false
 }: DashboardHeaderProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hasPatToken, setHasPatToken] = useState(false);
+
+  // Check for PAT token
+  useEffect(() => {
+    const checkToken = () => {
+      const token = localStorage.getItem("azure_devops_pat_token");
+      setHasPatToken(!!token);
+    };
+    checkToken();
+    window.addEventListener("storage", checkToken);
+    return () => window.removeEventListener("storage", checkToken);
+  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -66,6 +84,19 @@ export default function DashboardHeader({
           </div>
           
           <div className="flex items-center gap-2">
+            {hasPatToken && onSync && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSync}
+                disabled={isSyncing}
+                data-testid="button-sync"
+                className="border-green-500 bg-green-600 hover:bg-green-700 text-white font-medium"
+              >
+                <Download className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-bounce' : ''}`} />
+                Sync Data
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -80,11 +111,13 @@ export default function DashboardHeader({
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={() => setSettingsOpen(true)}
               data-testid="button-settings"
               className="border-slate-500 bg-slate-700 hover:bg-slate-600 text-white"
             >
               <Settings className="h-4 w-4" />
             </Button>
+            <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
           </div>
         </div>
 
