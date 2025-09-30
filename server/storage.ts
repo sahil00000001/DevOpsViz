@@ -218,8 +218,13 @@ export class DbStorage implements IStorage {
   // Work Item methods
   async getWorkItems(projectName: string, iterationPath?: string): Promise<WorkItem[]> {
     if (iterationPath) {
+      // Use LIKE to match iteration paths that end with or contain the sprint path
+      // This handles hierarchical paths like "ProjectName\Sprint 8" matching "Sprint 8"
       return await db.select().from(workItems)
-        .where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)))
+        .where(and(
+          eq(workItems.projectName, projectName), 
+          sql`${workItems.iterationPath} LIKE ${`%${iterationPath}%`}`
+        ))
         .orderBy(desc(workItems.createdDate));
     }
     
@@ -265,7 +270,10 @@ export class DbStorage implements IStorage {
     // Get all work items for analysis
     const allWorkItems = iterationPath
       ? await db.select().from(workItems)
-          .where(and(eq(workItems.projectName, projectName), eq(workItems.iterationPath, iterationPath)))
+          .where(and(
+            eq(workItems.projectName, projectName), 
+            sql`${workItems.iterationPath} LIKE ${`%${iterationPath}%`}`
+          ))
       : await db.select().from(workItems)
           .where(eq(workItems.projectName, projectName));
     
