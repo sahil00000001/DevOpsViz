@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DashboardHeader from "./DashboardHeader";
 import MetricsOverview from "./MetricsOverview";
@@ -9,7 +9,13 @@ import TeamPerformance from "./TeamPerformance";
 import DependencyView from "./DependencyView";
 
 export default function Dashboard() {
-  const [selectedSprint, setSelectedSprint] = useState<string>("2");
+  // Load selected sprint from localStorage or use empty string as default
+  const [selectedSprint, setSelectedSprint] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('selectedSprint') || '';
+    }
+    return '';
+  });
 
   // Fetch real data from Azure DevOps APIs
   const { data: dashboardData, isLoading: isDashboardLoading, refetch: refetchDashboard } = useQuery({
@@ -22,37 +28,59 @@ export default function Dashboard() {
     enabled: true
   });
 
-  const { data: workItems, isLoading: isWorkItemsLoading } = useQuery({
-    queryKey: ["/api/work-items"],
-    enabled: true
-  });
-
   const { data: repositories, isLoading: isRepositoriesLoading } = useQuery({
     queryKey: ["/api/repositories"],
     enabled: true
   });
 
+  // Transform sprints data from Azure DevOps API first
+  const transformedSprints = sprints?.map((sprint: any) => ({
+    id: sprint.id || sprint.identifier,
+    name: sprint.name,
+    path: sprint.path,
+    startDate: sprint.startDate || new Date().toISOString(),
+    finishDate: sprint.finishDate || new Date().toISOString(),
+    timeFrame: sprint.state || "unknown" as const
+  })) || [];
+
+  // Get the selected sprint's iteration path
+  const selectedSprintPath = transformedSprints.find(s => s.id === selectedSprint)?.path;
+  
+  const { data: workItems, isLoading: isWorkItemsLoading, refetch: refetchWorkItems } = useQuery({
+    queryKey: ["/api/work-items", { iterationPath: selectedSprintPath }],
+    enabled: !!selectedSprintPath,
+    queryFn: async ({ queryKey }) => {
+      const [_, params] = queryKey as [string, { iterationPath?: string }];
+      const searchParams = new URLSearchParams();
+      if (params.iterationPath) {
+        searchParams.set('iterationPath', params.iterationPath);
+      }
+      const response = await fetch(`/api/work-items?${searchParams.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch work items');
+      return response.json();
+    }
+  });
+
   // Check loading states
   const isLoading = isDashboardLoading || isSprintsLoading || isWorkItemsLoading || isRepositoriesLoading;
 
-  // Transform sprints data
-  const transformedSprints = sprints?.map((sprint: any, index: number) => ({
-    id: String(index + 1),
-    name: sprint.name || `Sprint ${index + 1}`,
-    path: sprint.path || `LifeSafety.ai\\Sprint ${index + 1}`,
-    startDate: sprint.startDate || new Date().toISOString(),
-    finishDate: sprint.finishDate || new Date().toISOString(),
-    timeFrame: sprint.state || "current" as const
-  })) || [
-    {
-      id: "1",
-      name: "Sprint 68",
-      path: "LifeSafety.ai\\Sprint 68",
-      startDate: "2025-09-30T00:00:00Z",
-      finishDate: "2025-10-13T00:00:00Z",
-      timeFrame: "current" as const
+  // Auto-select first sprint if none selected and sprints are available
+  useEffect(() => {
+    if (transformedSprints.length > 0 && !selectedSprint) {
+      const firstSprintId = transformedSprints[0].id;
+      setSelectedSprint(firstSprintId);
+      localStorage.setItem('selectedSprint', firstSprintId);
+      // Refetch work items for the newly selected sprint
+      setTimeout(() => refetchWorkItems(), 100);
     }
-  ];
+  }, [transformedSprints, selectedSprint, refetchWorkItems]);
+
+  // Save selected sprint to localStorage when it changes
+  useEffect(() => {
+    if (selectedSprint) {
+      localStorage.setItem('selectedSprint', selectedSprint);
+    }
+  }, [selectedSprint]);
 
   // Transform work items data
   const transformedWorkItems = workItems?.slice(0, 5).map((item: any) => ({
@@ -217,10 +245,13 @@ export default function Dashboard() {
     ]
   };
 
-  const handleSprintChange = (sprintId: string) => {
+  const handleSprintChange = async (sprintId: string) => {
     setSelectedSprint(sprintId);
+    localStorage.setItem('selectedSprint', sprintId);
     console.log('Selected sprint changed to:', sprintId);
-    // The data will automatically update through react-query when sprint changes
+    
+    // Refetch work items for the selected sprint
+    await refetchWorkItems();
   };
 
   const handleRefresh = async () => {
@@ -251,7 +282,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader
-        project="LifeSafety.ai"
+        project="WLS"
         organization="podtech-io"
         sprints={transformedData.sprints}
         selectedSprint={selectedSprint}
@@ -273,13 +304,13 @@ export default function Dashboard() {
           <WorkItemsTable 
             workItems={transformedData.workItems}
             organization="podtech-io"
-            project="LifeSafety.ai"
+            project="WLS"
           />
           
           <PullRequestsSection 
             pullRequests={transformedData.pullRequests}
             organization="podtech-io"
-            project="LifeSafety.ai"
+            project="WLS"
           />
         </div>
         
@@ -288,7 +319,7 @@ export default function Dashboard() {
         <DependencyView 
           dependencies={transformedData.dependencies}
           organization="podtech-io"
-          project="LifeSafety.ai"
+          project="WLS"
         />
       </main>
     </div>

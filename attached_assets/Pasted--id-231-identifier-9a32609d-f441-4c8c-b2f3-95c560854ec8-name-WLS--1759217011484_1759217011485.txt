@@ -1,0 +1,120 @@
+{
+    "id": 231,
+    "identifier": "9a32609d-f441-4c8c-b2f3-95c560854ec8",
+    "name": "WLS",
+    "structureType": "iteration",
+    "hasChildren": true,
+    "children": [
+        {
+            "id": 233,
+            "identifier": "692efe3d-f207-4b18-b4dc-db302e70ba07",
+            "name": "Sprint 1",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-06-19T00:00:00Z",
+                "finishDate": "2025-06-25T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 1",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%201"
+        },
+        {
+            "id": 319,
+            "identifier": "ccaae3cc-20be-4340-8a6a-eee9f15c80da",
+            "name": "Sprint 2",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-06-26T00:00:00Z",
+                "finishDate": "2025-07-02T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 2",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%202"
+        },
+        {
+            "id": 325,
+            "identifier": "56fcbf5b-ba75-452a-a8b2-e8b0cd5b2932",
+            "name": "Sprint 3",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-07-03T00:00:00Z",
+                "finishDate": "2025-07-09T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 3",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%203"
+        },
+        {
+            "id": 328,
+            "identifier": "7c91cc08-ca88-4dfd-bc9c-054b3c78898c",
+            "name": "Sprint 4",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-07-10T00:00:00Z",
+                "finishDate": "2025-07-16T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 4",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%204"
+        },
+        {
+            "id": 333,
+            "identifier": "1bf12274-3222-49e2-8444-3c13c5c6c6d5",
+            "name": "Sprint 5",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-07-17T00:00:00Z",
+                "finishDate": "2025-07-23T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 5",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%205"
+        },
+        {
+            "id": 337,
+            "identifier": "d6f0ef96-2766-484c-a4ae-762822d0581b",
+            "name": "Sprint 6",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-07-24T00:00:00Z",
+                "finishDate": "2025-07-30T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 6",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%206"
+        },
+        {
+            "id": 341,
+            "identifier": "a5f03128-b30e-46c0-9d07-71631375635e",
+            "name": "Sprint 7",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-07-31T00:00:00Z",
+                "finishDate": "2025-08-06T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 7",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%207"
+        },
+        {
+            "id": 348,
+            "identifier": "5bbca6b8-937b-4508-94fb-b7bfcba71efb",
+            "name": "Sprint 8",
+            "structureType": "iteration",
+            "hasChildren": false,
+            "attributes": {
+                "startDate": "2025-08-07T00:00:00Z",
+                "finishDate": "2025-08-13T00:00:00Z"
+            },
+            "path": "\\WLS\\Iteration\\Sprint 8",
+            "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations/Sprint%208"
+        }
+    ],
+    "path": "\\WLS\\Iteration",
+    "_links": {
+        "self": {
+            "href": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations"
+        }
+    },
+    "url": "https://dev.azure.com/podtech-io/d99d055c-98d7-4a86-abff-1cee0dece41c/_apis/wit/classificationNodes/Iterations"
+}

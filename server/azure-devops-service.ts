@@ -378,21 +378,45 @@ export class AzureDevOpsService {
 
   // Sprint/Iteration Management
   async getSprints(): Promise<Sprint[]> {
-    const url = `${this.baseUrl}/work/teamsettings/iterations?api-version=7.1`;
-    const response = await this.makeRequest<AzureDevOpsApiResponse<any>>(url);
+    const url = `${this.baseUrl}/wit/classificationnodes/iterations?$depth=5&api-version=7.0`;
+    const response = await this.makeRequest<any>(url);
     
-    return response.value.map(sprint => ({
-      id: sprint.id,
-      name: sprint.name,
-      path: sprint.path,
-      projectName: this.config.project,
-      organization: this.config.organization,
-      startDate: sprint.attributes?.startDate ? new Date(sprint.attributes.startDate) : null,
-      finishDate: sprint.attributes?.finishDate ? new Date(sprint.attributes.finishDate) : null,
-      state: this.getSprintState(sprint.attributes?.startDate, sprint.attributes?.finishDate),
-      attributes: sprint.attributes,
-      lastUpdated: new Date()
-    }));
+    // Recursively extract sprints from the nested tree
+    const sprints: Sprint[] = [];
+    
+    const extractSprints = (node: any) => {
+      // Only add nodes that have date attributes (actual sprints)
+      if (node.attributes?.startDate && node.attributes?.finishDate) {
+        sprints.push({
+          id: node.identifier || String(node.id),
+          name: node.name,
+          path: node.path,
+          projectName: this.config.project,
+          organization: this.config.organization,
+          startDate: new Date(node.attributes.startDate),
+          finishDate: new Date(node.attributes.finishDate),
+          state: this.getSprintState(node.attributes.startDate, node.attributes.finishDate),
+          attributes: node.attributes,
+          lastUpdated: new Date()
+        });
+      }
+      
+      // Recursively process children
+      if (node.children && Array.isArray(node.children)) {
+        for (const child of node.children) {
+          extractSprints(child);
+        }
+      }
+    };
+    
+    // Start extraction from the response (which might have children)
+    if (response.children && Array.isArray(response.children)) {
+      for (const child of response.children) {
+        extractSprints(child);
+      }
+    }
+    
+    return sprints;
   }
 
   private getSprintState(startDate?: string, finishDate?: string): string {

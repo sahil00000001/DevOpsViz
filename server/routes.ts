@@ -31,7 +31,7 @@ const workItemsQuerySchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const organization = "podtech-io";
-  const project = "LifeSafety.ai";
+  const project = "WLS";
   const pat = process.env.AZURE_DEVOPS_PAT_TOKEN;
 
   if (!pat) {
