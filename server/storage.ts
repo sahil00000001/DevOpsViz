@@ -327,7 +327,7 @@ export class DbStorage implements IStorage {
       
       if (existing.length > 0) {
         await db.update(pullRequests)
-          .set({ ...prData, lastUpdated: new Date() })
+          .set({ ...prData, lastUpdated: new Date(), reviewers: prData.reviewers as any || null })
           .where(eq(pullRequests.id, prData.id));
       } else {
         await db.insert(pullRequests).values({ 
@@ -536,7 +536,8 @@ export class MemStorage implements IStorage {
         lastUpdated: new Date(),
         url: commitData.url ?? null,
         remoteUrl: commitData.remoteUrl ?? null,
-        commentTruncated: commitData.commentTruncated ?? null
+        commentTruncated: commitData.commentTruncated ?? null,
+        changeCounts: commitData.changeCounts ?? null
       };
       this.commits.set(commitData.id, commit);
       results.push(commit);
@@ -685,7 +686,19 @@ export class MemStorage implements IStorage {
   async upsertPullRequests(pullRequestsData: InsertPullRequest[]): Promise<PullRequest[]> {
     const results: PullRequest[] = [];
     for (const prData of pullRequestsData) {
-      const pr: PullRequest = { ...prData, lastUpdated: new Date() };
+      const pr: PullRequest = { 
+        ...prData, 
+        lastUpdated: new Date(),
+        url: prData.url ?? null,
+        description: prData.description ?? null,
+        createdByEmail: prData.createdByEmail ?? null,
+        createdByImageUrl: prData.createdByImageUrl ?? null,
+        mergeStatus: prData.mergeStatus ?? null,
+        isDraft: prData.isDraft ?? null,
+        codeReviewId: prData.codeReviewId ?? null,
+        reviewers: (prData.reviewers as any) ?? null,
+        workItemIds: prData.workItemIds ?? null
+      };
       this.pullRequests.set(prData.id, pr);
       results.push(pr);
     }
@@ -705,7 +718,13 @@ export class MemStorage implements IStorage {
   async upsertTeamMembers(teamMembersData: InsertTeamMember[]): Promise<TeamMember[]> {
     const results: TeamMember[] = [];
     for (const tmData of teamMembersData) {
-      const tm: TeamMember = { ...tmData, lastUpdated: new Date() };
+      const tm: TeamMember = { 
+        ...tmData, 
+        lastUpdated: new Date(),
+        email: tmData.email ?? null,
+        uniqueName: tmData.uniqueName ?? null,
+        imageUrl: tmData.imageUrl ?? null
+      };
       this.teamMembers.set(tmData.id, tm);
       results.push(tm);
     }
@@ -725,7 +744,14 @@ export class MemStorage implements IStorage {
   async upsertSprints(sprintsData: InsertSprint[]): Promise<Sprint[]> {
     const results: Sprint[] = [];
     for (const sprintData of sprintsData) {
-      const sprint: Sprint = { ...sprintData, lastUpdated: new Date() };
+      const sprint: Sprint = { 
+        ...sprintData, 
+        lastUpdated: new Date(),
+        state: sprintData.state ?? null,
+        startDate: sprintData.startDate ?? null,
+        finishDate: sprintData.finishDate ?? null,
+        attributes: sprintData.attributes ?? null
+      };
       this.sprints.set(sprintData.id, sprint);
       results.push(sprint);
     }
@@ -787,5 +813,5 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use database storage for permanent data as recommended
-export const storage = new MemStorage();
+// Use database storage for permanent data
+export const storage = new DbStorage();

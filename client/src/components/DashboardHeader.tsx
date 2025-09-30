@@ -72,11 +72,17 @@ export default function DashboardHeader({
               onClick={handleRefresh}
               disabled={isRefreshing}
               data-testid="button-refresh"
+              className="border-blue-500 bg-blue-600 hover:bg-blue-700 text-white font-medium"
             >
               <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button variant="ghost" size="sm" data-testid="button-settings">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              data-testid="button-settings"
+              className="border-slate-500 bg-slate-700 hover:bg-slate-600 text-white"
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -84,12 +90,12 @@ export default function DashboardHeader({
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Sprint:</span>
+            <Calendar className="h-4 w-4 text-white" />
+            <span className="text-sm font-medium text-white">Sprint:</span>
           </div>
           
           <Select value={selectedSprint} onValueChange={onSprintChange}>
-            <SelectTrigger className="w-[300px]" data-testid="select-sprint">
+            <SelectTrigger className="w-[300px] border-2 border-blue-400 bg-slate-600 text-white hover:bg-slate-500 font-medium shadow-lg" data-testid="select-sprint">
               <SelectValue placeholder="Select a sprint..." />
             </SelectTrigger>
             <SelectContent>
